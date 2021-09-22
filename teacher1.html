@@ -1,0 +1,186 @@
+<html>
+    <canvas style="left: 0px; top: 0px; width: 100vmin; height: 100vmin; position: absolute;" id="canv" width="1000" height="1000"/>
+
+    <script>
+        var divide = confirm("use division?")
+        var c = document.getElementById("canv");
+        var ctx = c.getContext("2d");
+        var text = ""
+        var has_dot = false
+        var delta_time = 0
+        started = false
+        score = 0
+        lost = 0
+
+        num = prompt("what number would you like to practice")
+
+        while((((num)-0).toString() == "NaN") || num == " " || num == "" || num == null) {num = prompt("please enter a valid number")}
+
+        const context = new AudioContext()
+        const oscillator = context.createOscillator()
+
+        oscillator.frequency.value = 0
+         oscillator.type = 'sine'
+
+         oscillator.connect(context.destination)
+
+        document.onkeydown = function(e) {
+            switch (e.key) {
+                case "Enter":
+                    submit()
+                    break;
+                case "Backspace":
+                     text = text.substr(0,text.length-1)
+                     break;
+
+
+                case " ":
+                    break
+
+                case "-":
+                    if (text.length == 0) {
+                        text+="-"
+                    }
+                    break
+                case ".":
+                    if (!text.includes(".")) {
+                        text+="."
+                    }
+                    break
+
+                default:
+                    if (((e.key)-0).toString() != "NaN") {text+=e.key}
+            }
+            text = text.substr(0,6)
+            if (!started){
+            oscillator.start()
+            started = true
+            }
+        }
+
+        x=0;y=0
+
+        part = {}
+
+        button = {}
+        button = (new Array())
+        button["1"] = {"x":50,"y":140,"ex":200,"ey":180,"call":"submit()"}
+
+        c.onclick = function(e) {
+            rect = c.getBoundingClientRect()
+            x=e.clientX * (c.width / rect.width)
+            y=e.clientY * (c.height / rect.height)
+            
+            button.forEach((a,b) => {
+                if ( ((button[b]["x"]) < x) && ((button[b]["ex"]) > x) && ((button[b]["y"]) < y) && ((button[b]["ey"]) > y) ) {eval(button[b]["call"])}
+
+            })
+
+            if (!started){
+            oscillator.start()
+            started = true
+            }
+
+            
+        }
+        
+
+        function set_part() {
+
+            part = (new Array(100).fill("true"))
+            part.forEach((a,b) => {
+                part[b] = {} 
+                part[b]["x"] = (Math.random()*1000)
+                part[b]["y"] = (Math.random()*60)-90
+                part[b]["color"] = `rgb(${Math.random()*255},${Math.random()*255},${Math.random()*255})`
+            })
+        }
+        last = (new Date())
+        setInterval(() => {
+            
+            ctx.clearRect(0,0,c.width,c.height)
+
+            ctx.fillStyle = "rgb(0,0,0)"
+            button.forEach((a,b) => {
+                ctx.fillRect(button[b]["x"],button[b]["y"],(button[b]["ex"]-button[b]["x"]),(button[b]["ey"]-button[b]["y"]))
+            })
+
+            ctx.fillStyle = "rgb(255,0,0)"
+            ctx.font = '30px serif';
+            ctx.fillText('Submit', 75, 170);
+
+            ctx.beginPath();
+            ctx.rect(50,60,500,60)
+            ctx.stroke();
+
+            ctx.fillStyle = "rgb(255,0,0)"
+            ctx.font = '30px serif';
+            ctx.fillText(problem+"(round to two decimals)", 50, 40);
+
+            ctx.fillStyle = "rgb(0,0,0)"
+            ctx.font = '30px serif';
+            ctx.fillText(text, 60, 100);
+
+            ctx.fillStyle = "rgb(0,0,0)"
+            ctx.font = '30px serif';
+            ctx.fillText(score+"/"+lost, 890, 60);
+
+            ctx.fillText("fps:"+(Math.round(1000/delta_time)), 0, 968);
+
+            delta_time = (new Date())-last
+            last = (new Date())
+            part.forEach((a,b) => {
+                if (part[b] != null) {
+                speed = Math.random() * delta_time * 0.4
+                part[b]["y"]+= speed
+                ctx.fillStyle = part[b]["color"]
+                ctx.fillRect(part[b]["x"],part[b]["y"],10,10)
+                if (part[b]["y"] >= 1000) {part[b]= null}
+                }
+            })
+        }, 10);
+        
+        part = (new Array(100).fill("null"))
+
+
+
+        function submit() {
+            if (Math.round(text*100)/100 == Math.round(solution.toString()*100)/100) {
+                text = ""
+                set_part()
+                oscillator.frequency.value = 300
+                setTimeout(() => {oscillator.frequency.value = 0}, 0.2 * 1000)
+                next()
+                score++
+            } else {
+                oscillator.frequency.value = 120
+                setTimeout(() => {oscillator.frequency.value = 0}, 0.1 * 1000)
+                text = ""
+                lost++
+                next()
+            }
+
+
+        } 
+
+        function next() {
+            num_change = Math.round(Math.random()*14)
+            if (divide) { 
+            operator = Math.round(Math.random()*2)
+            } else {operator = 0}
+            if (operator == 0) {
+                solution = Math.round((num_change * num)*100)/100
+                problem = num_change+"*"+num
+            } else if (operator == 1) {
+                solution = Math.round((num_change / num)*100)/100
+                problem = num_change+"/"+num
+            } else if (operator == 2) {
+                solution = Math.round((num / num_change)*100)/100
+                problem = num+"/"+num_change
+            }
+
+        }
+        next()
+        </script>
+
+</html>
